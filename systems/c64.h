@@ -381,6 +381,8 @@ typedef struct {
 
     c1530_t c1530;      // optional datassette
     c1541_t c1541;      // optional floppy drive
+
+    
 } c64_t;
 
 // initialize a new C64 instance

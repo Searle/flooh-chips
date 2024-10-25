@@ -156,6 +156,8 @@ typedef void (*ui_dbg_reset_t)(void);
 typedef void (*ui_dbg_stopped_t)(int stop_reason, uint16_t addr);
 /* callback when emulator has continued after stopped state */
 typedef void (*ui_dbg_continued_t)(void);
+/* callback on emulator tick */
+typedef void (*ui_dbg_tick_t)(uint64_t pin, uint32_t tick);
 
 /* user-defined hotkeys (all strings must be static) */
 typedef struct ui_dbg_key_desc_t {
@@ -183,6 +185,7 @@ typedef struct ui_dbg_debug_callbacks_t {
     ui_dbg_reset_t reset_cb;
     ui_dbg_stopped_t stopped_cb;
     ui_dbg_continued_t continued_cb;
+    ui_dbg_tick_t tick_cb;
 } ui_dbg_debug_callbacks_t;
 
 typedef struct ui_dbg_desc_t {
@@ -2009,6 +2012,10 @@ void ui_dbg_tick(ui_dbg_t* win, uint64_t pins) {
     win->stopwatch.cur_ticks++;
     win->dbg.cur_op_ticks++;
     win->dbg.last_tick_pins = pins;
+
+    if(win->debug_cbs.tick_cb) {
+        win->debug_cbs.tick_cb(pins, win->dbg.cur_op_ticks);
+    }
 
     if (trap_id >= UI_DBG_STEP_TRAPID) {
         win->dbg.stopped = true;
