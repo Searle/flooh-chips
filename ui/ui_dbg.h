@@ -134,6 +134,12 @@ typedef struct ui_dbg_user_breaktype_t {
     bool show_val16;            /* show the value field as word? */
 } ui_dbg_breaktype_t;
 
+/* tick info for callback */
+typedef struct ui_dbg_tick_info_t {
+    uint32_t pin_flags;
+    uint32_t pin_addr;
+} ui_dbg_tick_info_t;
+
 /* texture handle compatible with Dear ImGui */
 typedef uint64_t ui_dbg_texture_t;
 /* forward decl */
@@ -157,7 +163,7 @@ typedef void (*ui_dbg_stopped_t)(int stop_reason, uint16_t addr);
 /* callback when emulator has continued after stopped state */
 typedef void (*ui_dbg_continued_t)(void);
 /* callback on emulator tick */
-typedef void (*ui_dbg_tick_t)(uint64_t pin, uint32_t tick);
+typedef void (*ui_dbg_tick_t)(ui_dbg_tick_info_t tick_info);
 
 /* user-defined hotkeys (all strings must be static) */
 typedef struct ui_dbg_key_desc_t {
@@ -2014,7 +2020,11 @@ void ui_dbg_tick(ui_dbg_t* win, uint64_t pins) {
     win->dbg.last_tick_pins = pins;
 
     if(win->debug_cbs.tick_cb) {
-        win->debug_cbs.tick_cb(pins, win->dbg.cur_op_ticks);
+        // FIXME only M6502
+        win->debug_cbs.tick_cb({
+            .pin_flags = (uint32_t)(pins >> 16),
+            .pin_addr = (uint32_t)(pins & 0xFFFFULL),
+        });
     }
 
     if (trap_id >= UI_DBG_STEP_TRAPID) {
